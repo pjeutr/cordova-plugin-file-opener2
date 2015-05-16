@@ -88,7 +88,9 @@ public class FileOpener2 extends CordovaPlugin {
 		} catch (Exception e) {
 			fileName = fileArg;
 		}
-		File file = new File(fileName);
+		File file = saveFile(fileName);
+    	System.out.println("PdfViewer: loading url "+file);
+		
 		if (file.exists()) {
 			try {
 				Uri path = Uri.fromFile(file);
@@ -150,4 +152,94 @@ public class FileOpener2 extends CordovaPlugin {
 		return uriString;
 	}
 
+    public File saveFile(String fileName){
+    	File file = null;    	
+
+    	boolean mExternalStorageAvailable = false;
+    	boolean mExternalStorageWriteable = false;
+    	String state = Environment.getExternalStorageState();
+
+    	if (Environment.MEDIA_MOUNTED.equals(state)) {
+    	    // We can read and write the media
+    	    mExternalStorageAvailable = mExternalStorageWriteable = true;
+    	} else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+    	    // We can only read the media
+    	    mExternalStorageAvailable = true;
+    	    mExternalStorageWriteable = false;
+    	} else {
+    	    // Something else is wrong. It may be one of many other states, but all we need
+    	    //  to know is we can neither read nor write
+    	    mExternalStorageAvailable = mExternalStorageWriteable = false;
+    	}
+
+    	String appDir = "/Android/data/com.maasland.catalog/files/";
+
+    	AssetManager assetManager = cordova.getActivity().getAssets();
+
+    	try {
+    		//using a buffer size of 1024 is IMHO a bad idea. In a Smartphone all media typically have a block-size of 4096 bytes or larger (e.g. SD-Card)
+    		int bufferSize = 4096;
+
+//	    	String[] as =  assetManager.list("www"+File.separator+"pdf");
+//	    	for (int i = 0; i < as.length; i++) {
+//	    		System.out.println("="+as[i]);
+//			}
+
+	    	System.out.println("AssetManager: open:"+fileName);
+
+	        // Data exceeds UNCOMPRESS_DATA_MAX (5278796 vs 4194304)
+	    	// make a commpressed file, to prevent this error on pre Android 2.3.3
+	    	// http://stackoverflow.com/questions/5789177/i-get-this-error-data-exceeds-uncompress-data-max-on-android-2-2-but-not-on-2-3
+	    	file = new File(cordova.getActivity().getExternalFilesDir(null), "maasland_temp.pdf");
+	    	if (false) //(file.exists() && file.length() != 0)
+	    	{
+	    		System.out.println("File already exists");
+	    	} else {	    			    	
+	            // Very simple code to copy a picture from the application's
+	            // resource into the external file.  Note that this code does
+	            // no error checking, and assumes the picture is small (does not
+	            // try to copy it in chunks).  Note that if external storage is
+	            // not currently mounted this will silently fail.
+	        	InputStream is = assetManager.open(fileName);
+	            //OutputStream os = new FileOutputStream(file);
+
+	            //OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
+
+	        	//Default buffer size used in BufferedInputStream constructor. It would be better to be explicit if an 8k buffer is required.
+	            BufferedInputStream bIS = new BufferedInputStream(is, 8192);
+
+//	            byte[] buffer = new byte[bIS.available()];
+	            byte[] buffer = new byte[bufferSize];
+	            FileOutputStream fOS = new FileOutputStream(file);
+	            int bufferLength = 0;
+	            while ((bufferLength = bIS.read(buffer)) > 0) {
+	            	fOS.write(buffer, 0, bufferLength);
+	            }
+
+
+//	            byte data[]=new byte[1024];
+//	            int len;
+//	            while((len=is.read(data))>0)
+//	              os.write(data,0,len);
+
+	            //byte[] data = new byte[is.available()];
+
+	            //is.read(data);
+	            //fOS.write(data);
+	            is.close();
+	            fOS.close();		        
+	    	}	       	        
+    	} catch (IOException e) {
+            // Unable to create file, likely because external storage is
+            // not currently mounted.
+    		// nee, uncompressed file is te groot
+    		System.out.println("Error " + e.getMessage());
+
+    		((DroidGap) cordova.getActivity()).displayError("Er is een fout opgetreden", 
+            		"De pdf kan niet worden geopend" , "Ok", false);
+
+    		return null;
+        } 
+    	return file;
+    }
 }
