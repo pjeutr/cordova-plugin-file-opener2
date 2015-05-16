@@ -38,6 +38,15 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
 import org.apache.cordova.CordovaResourceApi;
 
+//import for saveFile
+import android.os.Environment;
+import android.content.res.AssetManager;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 public class FileOpener2 extends CordovaPlugin {
 
 	/**
@@ -235,8 +244,7 @@ public class FileOpener2 extends CordovaPlugin {
     		// nee, uncompressed file is te groot
     		System.out.println("Error " + e.getMessage());
 
-    		((DroidGap) cordova.getActivity()).displayError("Er is een fout opgetreden", 
-            		"De pdf kan niet worden geopend" , "Ok", false);
+    		//((DroidGap) cordova.getActivity()).displayError("Er is een fout opgetreden", "De pdf kan niet worden geopend" , "Ok", false);
 
     		return null;
         } 
