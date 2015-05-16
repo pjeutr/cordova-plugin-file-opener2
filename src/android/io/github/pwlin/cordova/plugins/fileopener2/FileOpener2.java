@@ -100,7 +100,7 @@ public class FileOpener2 extends CordovaPlugin {
 		File file = saveFile(fileName);
     	System.out.println("PdfViewer: loading url "+file);
 		
-		if (file.exists()) {
+		if (file != null && file.exists()) {
 			try {
 				Uri path = Uri.fromFile(file);
 				Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -242,10 +242,9 @@ public class FileOpener2 extends CordovaPlugin {
             // Unable to create file, likely because external storage is
             // not currently mounted.
     		// nee, uncompressed file is te groot
-    		System.out.println("Error " + e.getMessage());
-
+    		System.out.println("IOException " + e.getMessage());
     		//((DroidGap) cordova.getActivity()).displayError("Er is een fout opgetreden", "De pdf kan niet worden geopend" , "Ok", false);
-
+			
     		return null;
         } 
     	return file;
